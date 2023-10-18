@@ -1,11 +1,9 @@
 import cv2
 import PIL
-import tensorflow as tf
-from tensorflow import keras
 import numpy as np
-from keras import layers
-from keras.models import Sequential
 import requests
+import keras
+import tflite_runtime.interpreter as tflite
 
 batch_size = 32
 img_height = 64
@@ -13,29 +11,16 @@ img_width = 48
 class_names = ['2', '3', '4', '5', '6', '7', '8', '9', 'a_l', 'a_u', 'b_u', 'c', 'cone', 'cubic', 'cylinder', 'd_u', 'e_l', 'e_u', 'f_u', 'flower', 'g_l', 'g_u', 'globular', 'h_l', 'h_u', 'hexic', 'k_u', 'l_u', 'm_l', 'm_u', 'n_l', 'p_u', 'q_u', 'r_l', 'r_u', 's_l', 't_l', 't_u', 'u_u', 'v', 'w_u', 'x', 'y_l', 'y_u', 'z']
 MIN_CONTOUR_AREA = 200
 MAX_CONTOUR_AREA = 4000
+TF_MODEL_FILE_PATH = 'models/model.tflite'
 
-
-def create_model():
-    num_classes = len(class_names)
-
-    model = Sequential([
-    layers.Rescaling(1./255, input_shape=(img_height, img_width, 3)),
-    layers.Conv2D(16, 3, padding='same', activation='relu'),
-    layers.MaxPooling2D(),
-    layers.Conv2D(32, 3, padding='same', activation='relu'),
-    layers.MaxPooling2D(),
-    layers.Conv2D(64, 3, padding='same', activation='relu'),
-    layers.MaxPooling2D(),
-    layers.Flatten(),
-    layers.Dense(128, activation='relu'),
-    layers.Dense(num_classes)
-    ])
-
-    model.compile(optimizer='adam',
-              loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
-              metrics=['accuracy'])
-
-    return model
+def soft_max(x):
+    exponents = []
+    for element in x:
+        exponents.append(np.exp(element))
+    summ = sum(exponents)
+    for i in range(len(exponents)):
+        exponents[i] = exponents[i] / summ 
+    return exponents 
 
 # image = cv2.imread("captcha/4.png")
 def checkInner(a, b):
@@ -105,18 +90,18 @@ def splitImg(image):
 # model.summary()
 
 # model.load_weights("checkpoints/cp.ckpt")
-
-model = keras.models.load_model("models/model.keras")
+interpreter = tflite.Interpreter(model_path=TF_MODEL_FILE_PATH)
+classify_lite = interpreter.get_signature_runner('serving_default')
 print("model loaded")
 
 
 def get_classify(img):
-    img_array = tf.keras.utils.img_to_array(img)
-    img_array = tf.expand_dims(img, 0) # Create a batch
+    img_array = keras.utils.img_to_array(img)
+    img_array = np.expand_dims(img, 0) # Create a batch
 
-    predictions = model.predict(img_array)
+    prediction = classify_lite(rescaling_1_input=img_array)['dense_1']
 
-    score = tf.nn.softmax(predictions[0])
+    score = soft_max(prediction)
     if(np.max(score) < 0.5):
         return None
     return class_names[np.argmax(score)]
