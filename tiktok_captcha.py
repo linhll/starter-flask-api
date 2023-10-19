@@ -1,4 +1,3 @@
-import cv2
 import PIL
 import numpy as np
 import requests
@@ -22,68 +21,37 @@ def soft_max(x):
         exponents[i] = exponents[i] / summ 
     return exponents 
 
-# image = cv2.imread("captcha/4.png")
-def checkInner(a, b):
-    xa, ya, wa,ha = a
-    xb, yb, wb,hb = b
-    area_a = wa * ha
-    area_b = wb * hb
-    if area_a >= area_b:
-        return False
+# def checkInner(a, b):
+#     xa, ya, wa,ha = a
+#     xb, yb, wb,hb = b
+#     area_a = wa * ha
+#     area_b = wb * hb
+#     if area_a >= area_b:
+#         return False
     
-    # if area_a > area_b:
-    #     if xb >= xa and xb <= xa + wa and yb >= ya and yb <= ya + ha:
-    #         return -1
-    #     return 0
-    if xa >= xb and xa <= xb + wb and ya >= yb and ya <= yb + hb:
-        return True
-    return False
+#     # if area_a > area_b:
+#     #     if xb >= xa and xb <= xa + wa and yb >= ya and yb <= ya + ha:
+#     #         return -1
+#     #     return 0
+#     if xa >= xb and xa <= xb + wb and ya >= yb and ya <= yb + hb:
+#         return True
+#     return False
 
 
-def removeInner(bounding_arr):
-    results = []
-    looper = range(0, len(bounding_arr))
-    for i in looper:
-        isInner = False
-        for j in looper:
-            isInner = checkInner(bounding_arr[i], bounding_arr[j])
-            if isInner:
-                break
+# def removeInner(bounding_arr):
+#     results = []
+#     looper = range(0, len(bounding_arr))
+#     for i in looper:
+#         isInner = False
+#         for j in looper:
+#             isInner = checkInner(bounding_arr[i], bounding_arr[j])
+#             if isInner:
+#                 break
         
-        if isInner:
-            continue
-        results.append(bounding_arr[i])
-    return results
-
-
-def splitImg(image):
-    img2 = cv2.convertScaleAbs(image, alpha=1.35, beta=2)
-    gray_img = cv2.cvtColor(img2, cv2.COLOR_BGR2GRAY)
-
-    _, black_white = cv2.threshold(gray_img, 250, 255, cv2.THRESH_BINARY)
-    
-    Contours, _ = cv2.findContours(black_white, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-
-    rect_arr = []
-    images = []
-    for contour in Contours:
-        area = cv2.contourArea(contour)
-
-        if area > MIN_CONTOUR_AREA and area < MAX_CONTOUR_AREA:
-            rect_arr.append(cv2.boundingRect(contour))
-
-    rect_arr = removeInner(rect_arr)
-    for i, rect in enumerate(rect_arr):
-        x, y, w, h = rect
-        cropped_image = black_white[y : y + h, x : x + w]
-        cropped_image = cv2.resize(cropped_image, (img_width, img_height))
-        cropped_image = cv2.cvtColor(cropped_image, cv2.COLOR_GRAY2RGB)
-        # filename = "working/"+str(i)+".jpg"
-        # cv2.imwrite(filename, cropped_image)
-        images.append(cropped_image)
-        
-
-    return [rect_arr, images]
+#         if isInner:
+#             continue
+#         results.append(bounding_arr[i])
+#     return results
 
 # model = create_model()
 
@@ -96,6 +64,7 @@ print("model loaded")
 
 
 def get_classify(img):
+    img = PIL.Image.fromarray(img)
     img_array = keras.utils.img_to_array(img)
     img_array = np.expand_dims(img, 0) # Create a batch
 
@@ -115,24 +84,17 @@ def get_the_same(arr):
                 return [i,j]
     return [None, None]
 
-def get_center_point(rect):
-    return [rect[0] + rect[2]/2, rect[1] + rect[3]/2]
+# def get_center_point(rect):
+#     return [rect[0] + rect[2]/2, rect[1] + rect[3]/2]
 
 
-def bypass(img_url):
-    resp = requests.get(img_url)
-    arr = np.asarray(bytearray(resp.content), dtype=np.uint8)
-    image = cv2.imdecode(arr, -1)
-    rect_array, images = splitImg(image)
-    if len(images)  !=7 :
-        return []
+def bypass(images):
     res = [get_classify(img) for img in images]
     if res == None:
         return []
-    a, b = get_the_same(res)
-    if a != None and b != None:
-        return [get_center_point(rect_array[a]), get_center_point(rect_array[b])]
-    return []
+    
+    return get_the_same(res)
+    
     
 
 
