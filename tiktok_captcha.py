@@ -79,8 +79,8 @@ def get_the_same(arr):
         for j in range(i + 1, max_index):
             print (str(arr[i]) + ":"+ str(arr[j]))
             if arr[i] == arr[j]:
-                return [i,j]
-    return [None, None]
+                return [arr[i], i,j]
+    return [None, None, None]
 
 # def get_center_point(rect):
 #     return [rect[0] + rect[2]/2, rect[1] + rect[3]/2]
