@@ -90,7 +90,7 @@ def bypass(images):
     res = [get_classify(img) for img in images]
     if res == None:
         return []
-    
+    print(res)
     return get_the_same(res)
     
     

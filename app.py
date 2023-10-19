@@ -13,7 +13,7 @@ def hello_world():
 def bypass_tiktok_captcha():
     if request.method == 'POST':
         body = request.get_json()
-        print(body)
+        # print(body)
         if body == None:
             abort(400)
         images = body.get("images")  
