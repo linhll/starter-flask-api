@@ -62,7 +62,7 @@ print("model loaded")
 
 def get_classify(img):
     # img = PIL.Image.fromarray(img)
-    img_array = np.float32(img_array)
+    img_array = np.float32(img)
     img_array = np.array(img, dtype=np.float32)
     img_array = np.expand_dims(img, 0) # Create a batch
 
