@@ -1,7 +1,4 @@
-import PIL
 import numpy as np
-import requests
-import keras
 import tflite_runtime.interpreter as tflite
 
 batch_size = 32
@@ -64,8 +61,8 @@ print("model loaded")
 
 
 def get_classify(img):
-    img = PIL.Image.fromarray(img)
-    img_array = keras.utils.img_to_array(img)
+    # img = PIL.Image.fromarray(img)
+    img_array = img_array = np.array(img, dtype=np.float32)
     img_array = np.expand_dims(img, 0) # Create a batch
 
     prediction = classify_lite(rescaling_1_input=img_array)['dense_1']
