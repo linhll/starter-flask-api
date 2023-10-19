@@ -9,14 +9,9 @@ MIN_CONTOUR_AREA = 200
 MAX_CONTOUR_AREA = 4000
 TF_MODEL_FILE_PATH = 'models/model.tflite'
 
-def soft_max(x):
-    exponents = []
-    for element in x:
-        exponents.append(np.exp(element))
-    summ = sum(exponents)
-    for i in range(len(exponents)):
-        exponents[i] = exponents[i] / summ 
-    return exponents 
+def soft_max(x, axis=-1):
+    e_x = np.exp(x - np.max(x)) # same code
+    return e_x / e_x.sum(axis=axis, keepdims=True)
 
 # def checkInner(a, b):
 #     xa, ya, wa,ha = a
