@@ -15,8 +15,8 @@ def bypass_tiktok_captcha():
         body = request.get_json()
         # print(body)
         if body == None:
-            abort(400)
-        images = body.get("images")  
-        label, idx1, idx2 = tiktok_captcha.bypass(images)
+            abort(400) 
+        label, idx1, idx2 = tiktok_captcha.bypass(body)
+        print(label + " " + str(idx1) + " " + str(idx2))
         return {"results": [idx1, idx2], "label": label }
     abort(400)

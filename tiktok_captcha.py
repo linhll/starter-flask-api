@@ -64,8 +64,6 @@ def get_classify(img):
     prediction = classify_lite(rescaling_1_input=img_array)['dense_1']
 
     score = soft_max(prediction)
-    if(np.max(score) < 0.5):
-        return None
     return class_names[np.argmax(score)]
 
 def get_the_same(arr):
@@ -85,7 +83,6 @@ def bypass(images):
     res = [get_classify(img) for img in images]
     if res == None:
         return []
-    print(res)
     return get_the_same(res)
     
     
